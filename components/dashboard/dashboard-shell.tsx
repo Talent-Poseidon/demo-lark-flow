@@ -9,6 +9,9 @@ import {
   Shield,
   LogOut,
   ChevronDown,
+  BookOpen,
+  ClipboardList,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -70,17 +73,52 @@ export function DashboardShell({ user, profile, children }: DashboardShellProps)
               );
             })}
             {profile.role === "admin" && (
-              <Link
-                href="/admin"
-                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  pathname.startsWith("/admin")
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
-              >
-                <Shield className="h-4 w-4" />
-                Admin
-              </Link>
+              <>
+                <Link
+                  href="/admin"
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    pathname === "/admin"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  <Shield className="h-4 w-4" />
+                  Admin
+                </Link>
+                <Link
+                  href="/admin/kamus"
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    pathname === "/admin/kamus"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  <BookOpen className="h-4 w-4" />
+                  Kamus
+                </Link>
+                <Link
+                  href="/admin/standar"
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    pathname === "/admin/standar"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  <ClipboardList className="h-4 w-4" />
+                  Standar
+                </Link>
+                <Link
+                  href="/admin/scenario"
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    pathname === "/admin/scenario"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  <FileText className="h-4 w-4" />
+                  Scenario
+                </Link>
+              </>
             )}
           </nav>
 

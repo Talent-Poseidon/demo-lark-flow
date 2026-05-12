@@ -94,7 +94,79 @@ async function main() {
     },
   });
 
-  console.log({ originalAdmin, testAdmin, testUser, seedKamus, seedStandar, seedScenario });
+  // Seed Project for E2E tests
+  const seedProject = await prisma.project.upsert({
+    where: { id: 'seed-project-1' },
+    update: {},
+    create: {
+      id: 'seed-project-1',
+      name: 'Seed Project Alpha',
+      startDate: new Date('2026-01-01'),
+      endDate: new Date('2026-12-31'),
+      status: 'active',
+    },
+  });
+
+  // Seed AssessorAssignment for E2E tests
+  const seedAssignment = await prisma.assessorAssignment.upsert({
+    where: { id: 'seed-assignment-1' },
+    update: {},
+    create: {
+      id: 'seed-assignment-1',
+      projectId: 'seed-project-1',
+      assessorName: 'Seed Assessor',
+      assessorEmail: 'assessor@example.com',
+    },
+  });
+
+  // Seed Notification for E2E tests
+  const seedNotification = await prisma.notification.upsert({
+    where: { id: 'seed-notification-1' },
+    update: {},
+    create: {
+      id: 'seed-notification-1',
+      projectId: 'seed-project-1',
+      assesseeName: 'Seed Assessee',
+      assesseeEmail: 'assessee@example.com',
+      message: 'You have been added to Seed Project Alpha',
+    },
+  });
+
+  // Seed DomainEvents for E2E tests
+  const seedEventProjectSubmitted = await prisma.domainEvent.upsert({
+    where: { id: 'seed-event-1' },
+    update: {},
+    create: {
+      id: 'seed-event-1',
+      type: 'PROJECT_SUBMITTED',
+      entityId: 'seed-project-1',
+      payload: JSON.stringify({ name: 'Seed Project Alpha', startDate: '2026-01-01', endDate: '2026-12-31' }),
+    },
+  });
+
+  const seedEventAssessorAssigned = await prisma.domainEvent.upsert({
+    where: { id: 'seed-event-2' },
+    update: {},
+    create: {
+      id: 'seed-event-2',
+      type: 'ASSESSOR_ASSIGNED',
+      entityId: 'seed-assignment-1',
+      payload: JSON.stringify({ projectId: 'seed-project-1', assessorName: 'Seed Assessor', assessorEmail: 'assessor@example.com' }),
+    },
+  });
+
+  const seedEventAssesseeNotified = await prisma.domainEvent.upsert({
+    where: { id: 'seed-event-3' },
+    update: {},
+    create: {
+      id: 'seed-event-3',
+      type: 'ASSESSEE_NOTIFIED',
+      entityId: 'seed-notification-1',
+      payload: JSON.stringify({ projectId: 'seed-project-1', assesseeName: 'Seed Assessee', assesseeEmail: 'assessee@example.com', message: 'You have been added to Seed Project Alpha' }),
+    },
+  });
+
+  console.log({ originalAdmin, testAdmin, testUser, seedKamus, seedStandar, seedScenario, seedProject, seedAssignment, seedNotification, seedEventProjectSubmitted, seedEventAssessorAssigned, seedEventAssesseeNotified });
 }
 
 main()

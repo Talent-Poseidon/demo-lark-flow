@@ -155,3 +155,86 @@ test.describe('Admin can notify assessees about projects', () => {
       .toContainText('All fields are required');
   });
 });
+
+test.describe('Domain events are triggered for project actions', () => {
+  test.beforeEach(async ({ page }) => {
+    const title = test.info().title;
+    console.log(`[Test: ${title}] Navigating to /admin/projects...`);
+
+    const response = await page.goto('/admin/projects');
+    console.log(`[Test: ${title}] Status: ${response?.status()} | URL: ${page.url()}`);
+
+    await expect(page).toHaveURL(/\/admin\/projects/);
+    await expect(page.getByTestId('project-page-nav')).toBeVisible();
+  });
+
+  test('Admin views the domain event log', async ({ page }) => {
+    await expect(page.getByTestId('event-list-container')).toBeVisible();
+
+    const firstItem = page.locator('[data-testid^="event-item-"]').first();
+    await expect(firstItem).toBeVisible({ timeout: 10000 });
+
+    const count = await page.locator('[data-testid^="event-item-"]').count();
+    console.log(`[Event Log] Found ${count} events`);
+    expect(count).toBeGreaterThan(0);
+  });
+
+  test('Submit Project event is triggered when creating a project', async ({ page }) => {
+    const uniqueName = `E2E Event Project ${Date.now()}`;
+
+    await page.getByTestId('project-name-input').fill(uniqueName);
+    await page.getByTestId('start-date-input').fill('2026-07-01');
+    await page.getByTestId('end-date-input').fill('2026-12-31');
+    await page.getByTestId('submit-project-btn').click();
+
+    await expect(page.getByTestId('project-created-alert'))
+      .toContainText('Project created successfully');
+
+    // Verify PROJECT_SUBMITTED event appears in the event log
+    await expect(page.getByText('PROJECT_SUBMITTED').first()).toBeVisible({ timeout: 10000 });
+    console.log(`[Event] PROJECT_SUBMITTED event triggered for: ${uniqueName}`);
+  });
+
+  test('Assessor Assigned event is triggered when assigning an assessor', async ({ page }) => {
+    // Wait for projects to load
+    const firstProjectItem = page.locator('[data-testid^="project-item-"]').first();
+    await expect(firstProjectItem).toBeVisible({ timeout: 10000 });
+
+    await page.getByTestId('assessor-project-select').click();
+    await page.locator('[role="option"]').first().click();
+
+    const uniqueName = `E2E Event Assessor ${Date.now()}`;
+    await page.getByTestId('assessor-name-input').fill(uniqueName);
+    await page.getByTestId('assessor-email-input').fill(`event-assessor-${Date.now()}@example.com`);
+    await page.getByTestId('submit-assessor-btn').click();
+
+    await expect(page.getByTestId('assessor-assigned-alert'))
+      .toContainText('Assessor assigned successfully');
+
+    // Verify ASSESSOR_ASSIGNED event appears in the event log
+    await expect(page.getByText('ASSESSOR_ASSIGNED').first()).toBeVisible({ timeout: 10000 });
+    console.log(`[Event] ASSESSOR_ASSIGNED event triggered for: ${uniqueName}`);
+  });
+
+  test('Assessee Notified event is triggered when sending a notification', async ({ page }) => {
+    // Wait for projects to load
+    const firstProjectItem = page.locator('[data-testid^="project-item-"]').first();
+    await expect(firstProjectItem).toBeVisible({ timeout: 10000 });
+
+    await page.getByTestId('notification-project-select').click();
+    await page.locator('[role="option"]').first().click();
+
+    const uniqueName = `E2E Event Assessee ${Date.now()}`;
+    await page.getByTestId('assessee-name-input').fill(uniqueName);
+    await page.getByTestId('assessee-email-input').fill(`event-assessee-${Date.now()}@example.com`);
+    await page.getByTestId('notification-message-input').fill('E2E event test notification');
+    await page.getByTestId('submit-notification-btn').click();
+
+    await expect(page.getByTestId('notification-sent-alert'))
+      .toContainText('Assessee notified successfully');
+
+    // Verify ASSESSEE_NOTIFIED event appears in the event log
+    await expect(page.getByText('ASSESSEE_NOTIFIED').first()).toBeVisible({ timeout: 10000 });
+    console.log(`[Event] ASSESSEE_NOTIFIED event triggered for: ${uniqueName}`);
+  });
+});

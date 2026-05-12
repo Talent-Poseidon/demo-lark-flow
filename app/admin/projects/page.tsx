@@ -13,7 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FolderPlus, UserPlus, Bell } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { FolderPlus, UserPlus, Bell, Activity } from "lucide-react";
 
 interface ProjectItem {
   id: string;
@@ -42,6 +43,14 @@ interface NotificationItem {
   sentAt: string;
   createdAt: string;
   project: ProjectItem;
+}
+
+interface DomainEventItem {
+  id: string;
+  type: string;
+  entityId: string;
+  payload: string;
+  createdAt: string;
 }
 
 export default function ProjectsPage() {
@@ -79,6 +88,10 @@ export default function ProjectsPage() {
     message: string;
   }>({ type: "", message: "" });
 
+  // Domain event state
+  const [domainEvents, setDomainEvents] = useState<DomainEventItem[]>([]);
+  const [eventsLoading, setEventsLoading] = useState<boolean>(true);
+
   useEffect(() => {
     fetch("/api/projects")
       .then((r) => r.json())
@@ -103,7 +116,22 @@ export default function ProjectsPage() {
         setNotificationLoading(false);
       })
       .catch(() => setNotificationLoading(false));
+
+    fetch("/api/domain-events")
+      .then((r) => r.json())
+      .then((data: DomainEventItem[]) => {
+        setDomainEvents(data);
+        setEventsLoading(false);
+      })
+      .catch(() => setEventsLoading(false));
   }, []);
+
+  const refreshEvents = () => {
+    fetch("/api/domain-events")
+      .then((r) => r.json())
+      .then((data: DomainEventItem[]) => setDomainEvents(data))
+      .catch(() => {});
+  };
 
   const handleProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,6 +165,7 @@ export default function ProjectsPage() {
       setProjectName("");
       setStartDate("");
       setEndDate("");
+      refreshEvents();
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Failed to create project";
@@ -181,6 +210,7 @@ export default function ProjectsPage() {
       setAssignProjectId("");
       setAssessorName("");
       setAssessorEmail("");
+      refreshEvents();
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Failed to assign assessor";
@@ -226,6 +256,7 @@ export default function ProjectsPage() {
       setAssesseeName("");
       setAssesseeEmail("");
       setNotifyMessage("");
+      refreshEvents();
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Failed to send notification";
@@ -576,6 +607,59 @@ export default function ProjectsPage() {
               <p data-testid="notification-list-empty">
                 No notifications sent yet
               </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* Domain Event Log Section */}
+      <Card>
+        <CardHeader>
+          <h3 className="text-lg font-medium flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            Domain Event Log
+          </h3>
+        </CardHeader>
+        <CardContent>
+          <div data-testid="event-list-container">
+            {eventsLoading ? (
+              <p data-testid="event-list-loading">Loading...</p>
+            ) : domainEvents.length > 0 ? (
+              <ul data-testid="event-list" className="space-y-2">
+                {domainEvents.map((event: DomainEventItem) => (
+                  <li
+                    key={event.id}
+                    data-testid={`event-item-${event.id}`}
+                    className="flex items-center justify-between rounded-lg border p-3"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant={
+                            event.type === "PROJECT_SUBMITTED"
+                              ? "default"
+                              : event.type === "ASSESSOR_ASSIGNED"
+                                ? "secondary"
+                                : "outline"
+                          }
+                        >
+                          {event.type}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Entity: {event.entityId}
+                      </p>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(event.createdAt).toLocaleString()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p data-testid="event-list-empty">No events recorded yet</p>
             )}
           </div>
         </CardContent>

@@ -45,6 +45,15 @@ export async function POST(request: Request) {
     const item = await prisma.notification.create({
       data: { projectId, assesseeName, assesseeEmail, message },
     });
+
+    await prisma.domainEvent.create({
+      data: {
+        type: "ASSESSEE_NOTIFIED",
+        entityId: item.id,
+        payload: JSON.stringify({ projectId, assesseeName, assesseeEmail, message }),
+      },
+    });
+
     return NextResponse.json(item, { status: 201 });
   } catch (error) {
     console.error("[API] POST /api/notifications failed:", error);

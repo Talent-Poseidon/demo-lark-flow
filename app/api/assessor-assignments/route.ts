@@ -45,6 +45,15 @@ export async function POST(request: Request) {
     const item = await prisma.assessorAssignment.create({
       data: { projectId, assessorName, assessorEmail },
     });
+
+    await prisma.domainEvent.create({
+      data: {
+        type: "ASSESSOR_ASSIGNED",
+        entityId: item.id,
+        payload: JSON.stringify({ projectId, assessorName, assessorEmail }),
+      },
+    });
+
     return NextResponse.json(item, { status: 201 });
   } catch (error) {
     console.error("[API] POST /api/assessor-assignments failed:", error);

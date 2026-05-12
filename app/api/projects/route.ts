@@ -43,6 +43,15 @@ export async function POST(request: Request) {
     const item = await prisma.project.create({
       data: { name, startDate: start, endDate: end },
     });
+
+    await prisma.domainEvent.create({
+      data: {
+        type: "PROJECT_SUBMITTED",
+        entityId: item.id,
+        payload: JSON.stringify({ name, startDate, endDate }),
+      },
+    });
+
     return NextResponse.json(item, { status: 201 });
   } catch (error) {
     console.error("[API] POST /api/projects failed:", error);

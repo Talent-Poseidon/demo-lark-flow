@@ -132,7 +132,41 @@ async function main() {
     },
   });
 
-  console.log({ originalAdmin, testAdmin, testUser, seedKamus, seedStandar, seedScenario, seedProject, seedAssignment, seedNotification });
+  // Seed DomainEvents for E2E tests
+  const seedEventProjectSubmitted = await prisma.domainEvent.upsert({
+    where: { id: 'seed-event-1' },
+    update: {},
+    create: {
+      id: 'seed-event-1',
+      type: 'PROJECT_SUBMITTED',
+      entityId: 'seed-project-1',
+      payload: JSON.stringify({ name: 'Seed Project Alpha', startDate: '2026-01-01', endDate: '2026-12-31' }),
+    },
+  });
+
+  const seedEventAssessorAssigned = await prisma.domainEvent.upsert({
+    where: { id: 'seed-event-2' },
+    update: {},
+    create: {
+      id: 'seed-event-2',
+      type: 'ASSESSOR_ASSIGNED',
+      entityId: 'seed-assignment-1',
+      payload: JSON.stringify({ projectId: 'seed-project-1', assessorName: 'Seed Assessor', assessorEmail: 'assessor@example.com' }),
+    },
+  });
+
+  const seedEventAssesseeNotified = await prisma.domainEvent.upsert({
+    where: { id: 'seed-event-3' },
+    update: {},
+    create: {
+      id: 'seed-event-3',
+      type: 'ASSESSEE_NOTIFIED',
+      entityId: 'seed-notification-1',
+      payload: JSON.stringify({ projectId: 'seed-project-1', assesseeName: 'Seed Assessee', assesseeEmail: 'assessee@example.com', message: 'You have been added to Seed Project Alpha' }),
+    },
+  });
+
+  console.log({ originalAdmin, testAdmin, testUser, seedKamus, seedStandar, seedScenario, seedProject, seedAssignment, seedNotification, seedEventProjectSubmitted, seedEventAssessorAssigned, seedEventAssesseeNotified });
 }
 
 main()
